@@ -1,6 +1,9 @@
 defmodule GpioServer do
   use GenServer
 
+  @export "/sys/class/gpio/export"
+  @unexport "/sys/class/gpio/unexport"
+
   def start_link do
     GenServer.start_link(__MODULE__, :ok, [])
   end
@@ -20,17 +23,20 @@ defmodule GpioServer do
   def unexport(pins) do
     Map.keys(pins)
     |> Enum.each(fn pin ->
-      command("echo #{pin} > /sys/class/gpio/unexport")
+      command("echo #{pin} > #{@unexport}")
     end)
   end
 
   def export_direction(pins) do
     Map.keys(pins)
     |> Enum.each(fn pin ->
-      command("echo #{pin} > /sys/class/gpio/export")
-      command("echo 'out' > /sys/class/gpio/gpio#{pin}/direction")
+      command("echo #{pin} > #{@export}")
+      command("echo 'out' > #{direction(pin)}")
     end)
   end
+
+  def direction(pin), do: "/sys/class/gpio/gpio#{pin}/direction"
+  def pin_value(pin), do: "/sys/class/gpio/gpio#{pin}/value"
 
   ## Server Callbacks
 
